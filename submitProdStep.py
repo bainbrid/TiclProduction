@@ -57,12 +57,16 @@ parser.add_option('--skip-step2'   ,    action="store_true",  dest='skipStep2'  
 parser.add_option('--skip-step3'   ,    action="store_true",  dest='skipStep3'           , help='Skip third step: copy step3 file from eos and rerun TICL.')
 parser.add_option('-G', '--gridProxy',  action="store_true",  dest='gridProxy'           , help='initialise grid proxy')
 
+parser.add_option('--Eval'  ,    dest='Eval'         , help='Energy for generator process' , default=0,    type=float)
 parser.add_option('--pT'  ,    dest='pT'         , help='pT for generator process' , default=5,    type=float)
 parser.add_option('--minpT'  ,    dest='minpT'         , help='Minimum pT for generator process' , default=4.95,    type=float)
 parser.add_option('--maxpT'  ,    dest='maxpT'         , help='Maximum pT for generator process' , default=5.05,    type=float)
 parser.add_option('--Eta'  ,    dest='Eta'         , help='Eta*10 for generator process' , default=17,    type=float)
+parser.add_option('--Phi'  ,    dest='Phi'         , help='Phi in degrees for generator process' , default=0,    type=float)
 parser.add_option('--minEta'  ,    dest='minEta'         , help='Minimum Eta for generator process' , default=1.69,    type=float)
 parser.add_option('--maxEta'  ,    dest='maxEta'         , help='Maximum Eta for generator process' , default=1.71,    type=float)
+parser.add_option('--minPhi'  ,    dest='minPhi'         , help='Minimum Phi for generator process' , default=-3.14159265359,    type=float)
+parser.add_option('--maxPhi'  ,    dest='maxPhi'         , help='Maximum Phi for generator process' , default=3.14159265359,    type=float)
 parser.add_option('--minz'  ,    dest='minz'         , help='Minimum z for generator process' , default=320,    type=float)
 parser.add_option('--pdgid'  ,    dest='pdgid'         , help='PDG ID generator process' , default=22,    type=int)
 parser.add_option('--PtEta'         ,    dest='PtEta'                , help='Pt-eta string path to save root file to EOS',         default='pt5_eta17')
@@ -147,12 +151,19 @@ scriptFile.write('cd $localdir\n')
 outTag='_%s'%(opt.PtEta)
 if (opt.nRuns>1) : 
     outTag='%s_run${Step}'%(outTag)
-
-if not opt.skipStep1 :
+    
+if not opt.skipStep1:
     #scriptFile.write('cmsRun %s/%s/%s maxEvents=%d generatorRandomSeed=%d minpT=%3.3f maxpT=%3.3f minEta=%3.3f maxEta=%3.3f minz=%3.3f\n'%(os.getcwd(),opt.workflow,opt.config1,opt.nevts,opt.randomSeed,opt.minpT,opt.maxpT,opt.minEta,opt.maxEta,opt.minz))
     scriptFile.write('echo "-- Random seed is set to : " ${SEED} >> runJob.log\n')
-    scriptFile.write('echo "cmsRun %s/%s/%s maxEvents=%d generatorRandomSeed=${SEED} minpT=%3.3f maxpT=%3.3f minEta=%3.3f maxEta=%3.3f minz=%3.3f pdgid=%d" >> runJob.log\n'%(os.getcwd(),opt.workflow,opt.config1,opt.nevts,opt.pT*0.99,opt.pT*1.01,opt.Eta*0.0994,opt.Eta*0.1006,opt.minz,opt.pdgid))
-    scriptFile.write('cmsRun %s/%s/%s maxEvents=%d generatorRandomSeed=${SEED} minpT=%3.3f maxpT=%3.3f minEta=%3.3f maxEta=%3.3f minz=%3.3f pdgid=%d\n'%(os.getcwd(),opt.workflow,opt.config1,opt.nevts,opt.pT*0.99,opt.pT*1.01,opt.Eta*0.0994,opt.Eta*0.1006,opt.minz,opt.pdgid))
+#    scriptFile.write('echo "cmsRun %s/%s/%s maxEvents=%d generatorRandomSeed=${SEED} minpT=%3.3f maxpT=%3.3f minEta=%3.3f maxEta=%3.3f minPhi=%3.3f maxPhi=%3.3f minz=%3.3f pdgid=%d" >> runJob.log\n'%(os.getcwd(),opt.workflow,opt.config1,opt.nevts,opt.pT*0.99,opt.pT*1.01,opt.Eta*0.0994,opt.Eta*0.1006,opt.minPhi,opt.maxPhi,opt.minz,opt.pdgid))
+
+    if (opt.Eval>0):
+        scriptFile.write('echo "cmsRun %s/%s/%s maxEvents=%d generatorRandomSeed=${SEED} E=%3.3f minEta=%3.3f maxEta=%3.3f minPhi=%3.3f maxPhi=%3.3f minz=%3.3f pdgid=%d" >> runJob.log\n'%(os.getcwd(),opt.workflow,opt.config1,opt.nevts,opt.Eval,opt.minEta,opt.maxEta,opt.minPhi,opt.maxPhi,opt.minz,opt.pdgid))
+        scriptFile.write('cmsRun %s/%s/%s maxEvents=%d generatorRandomSeed=${SEED} E=%3.3f minEta=%3.3f maxEta=%3.3f minPhi=%3.3f maxPhi=%3.3f minz=%3.3f pdgid=%d\n'%(os.getcwd(),opt.workflow,opt.config1,opt.nevts,opt.Eval,opt.minEta,opt.maxEta,opt.minPhi,opt.maxPhi,opt.minz,opt.pdgid))
+    else: 
+        scriptFile.write('echo "cmsRun %s/%s/%s maxEvents=%d generatorRandomSeed=${SEED} minpT=%3.3f maxpT=%3.3f minEta=%3.3f maxEta=%3.3f minPhi=%3.3f maxPhi=%3.3f minz=%3.3f pdgid=%d" >> runJob.log\n'%(os.getcwd(),opt.workflow,opt.config1,opt.nevts,opt.pT*0.99,opt.pT*1.01,opt.minEta,opt.maxEta,opt.minPhi,opt.maxPhi,opt.minz,opt.pdgid))
+        scriptFile.write('cmsRun %s/%s/%s maxEvents=%d generatorRandomSeed=${SEED} minpT=%3.3f maxpT=%3.3f minEta=%3.3f maxEta=%3.3f minPhi=%3.3f maxPhi=%3.3f minz=%3.3f pdgid=%d\n'%(os.getcwd(),opt.workflow,opt.config1,opt.nevts,opt.pT*0.99,opt.pT*1.01,opt.minEta,opt.maxEta,opt.minPhi,opt.maxPhi,opt.minz,opt.pdgid))
+
 elif not opt.skipStep2:
     scriptFile.write('%s %s/step1%s.root step1.root\n'%(eoscp,eosDirIn,outTag))
 

@@ -2,7 +2,7 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: CloseByParticle_Photon_ERZRanges_cfi --conditions auto:phase2_realistic_T15 -n 10 --era Phase2C9 --eventcontent FEVTDEBUG --relval 9000,100 -s GEN,SIM --datatier GEN-SIM --beamspot HLLHC --geometry Extended2026D49 --no_exec --fileout file:step1.root
+# with command line options: CloseByParticle_Photon_ERZRanges_cfi --conditions auto:phase2_realistic_T15 -n 100 --era Phase2C9 --eventcontent FEVTDEBUG --relval 9000,100 -s GEN,SIM --datatier GEN-SIM --beamspot HLLHC --geometry Extended2026D49 --no_exec --fileout file:step1.root --procModifier fineCalo
 import FWCore.ParameterSet.Config as cms
 from FWCore.ParameterSet.VarParsing import VarParsing
 
@@ -19,12 +19,6 @@ options.register('pdgid',
                  VarParsing.varType.int,
                  "PDG ID for particle gun")
 
-options.register('E',
-                 0,
-                 VarParsing.multiplicity.singleton,
-                 VarParsing.varType.float,
-                 "Energy of CloseByPhotons")
-
 options.register('minpT',
                  4.95,
                  VarParsing.multiplicity.singleton,
@@ -37,7 +31,9 @@ options.register('maxpT',
                  VarParsing.multiplicity.singleton,
                  VarParsing.varType.float,
                  "Maximum pT of CloseByPhotons")
-                                                                                                                                           
+
+
+
 options.register('minEta',
                  1.69,
                  VarParsing.multiplicity.singleton,
@@ -73,9 +69,12 @@ options.register('minz',
 options.maxEvents=1
 options.parseArguments()
 
-from Configuration.Eras.Era_Phase2C9_cff import Phase2C9
 
-process = cms.Process('SIM',Phase2C9)
+
+from Configuration.Eras.Era_Phase2C9_cff import Phase2C9
+from Configuration.ProcessModifiers.fineCalo_cff import fineCalo
+
+process = cms.Process('SIM',Phase2C9,fineCalo)
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
@@ -108,6 +107,7 @@ process.options = cms.untracked.PSet(
     SkipEvent = cms.untracked.vstring(),
     allowUnscheduled = cms.obsolete.untracked.bool,
     canDeleteEarly = cms.untracked.vstring(),
+    deleteNonConsumedUnscheduledModules = cms.untracked.bool(True),
     emptyRunLumiMode = cms.obsolete.untracked.string,
     eventSetup = cms.untracked.PSet(
         forceNumberOfConcurrentIOVs = cms.untracked.PSet(
@@ -130,7 +130,7 @@ process.options = cms.untracked.PSet(
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
-    annotation = cms.untracked.string('CloseByParticle_Photon_ERZRanges_cfi nevts:10'),
+    annotation = cms.untracked.string('CloseByParticle_Photon_ERZRanges_cfi nevts:100'),
     name = cms.untracked.string('Applications'),
     version = cms.untracked.string('$Revision: 1.19 $')
 )
@@ -157,18 +157,19 @@ process.genstepfilter.triggerConditions=cms.vstring("generation_step")
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic_T15', '')
 
+
+
 process.generator = cms.EDProducer(
         "CloseByParticleGunProducer",
         AddAntiParticle = cms.bool(False),
         PGunParameters = cms.PSet(
                 Delta = cms.double(20),
-                EnVal = cms.double(options.E),
                 PtMax = cms.double(options.maxpT),
                 PtMin = cms.double(options.minpT),
                 MaxEta = cms.double(options.maxEta),
                 MinEta = cms.double(options.minEta),
-                MaxPhi = cms.double(options.maxPhi),
-                MinPhi = cms.double(options.minPhi),
+                MaxPhi = cms.double(3.14159265359),
+                MinPhi = cms.double(-3.14159265359),
                 NParticles = cms.int32(1),
                 Overlapping = cms.bool(False),
                 PartID = cms.vint32(options.pdgid),
@@ -185,6 +186,7 @@ process.generator = cms.EDProducer(
 )
 
 process.RandomNumberGeneratorService.generator.initialSeed = options.generatorRandomSeed
+
 # Path and EndPath definitions
 process.generation_step = cms.Path(process.pgen)
 process.simulation_step = cms.Path(process.psim)
