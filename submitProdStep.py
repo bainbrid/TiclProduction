@@ -73,6 +73,10 @@ parser.add_option('--PtEta'         ,    dest='PtEta'                , help='Pt-
 
 (opt, args) = parser.parse_args()
 
+isPU=False
+if 'WithPU' in opt.datatype:
+    isPU=True
+
 outDirSub='%s/%s/%s/%s'%(os.getcwd(),opt.out,opt.datatype,opt.PtEta)
 eosDir='%s/%s'%(opt.eosout,opt.datatype)
 eosDirIn='%s'%(opt.eosin)
@@ -235,7 +239,7 @@ condorFile = open('%s/condorSubmitProd.sub'%(outDirSub), 'w')
 condorFile.write('x509userproxy = $ENV(X509_USER_PROXY)\n')
 condorFile.write('use_x509userproxy = True\n')
 condorFile.write('universe = vanilla\n')
-if not opt.skipStep1 :
+if (not opt.skipStep1) or isPU:
     condorFile.write('+JobFlavour = "nextweek"\n')
 else:
     condorFile.write('+JobFlavour = "tomorrow"\n')
