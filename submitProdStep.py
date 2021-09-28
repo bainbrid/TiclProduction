@@ -94,7 +94,7 @@ if '/eos/user' in opt.eosout:
 gen_kwargs = dict(low=0, high=100000, size=opt.nRuns)
 seeds = gen_uniform_int_random_seeds_(**gen_kwargs)
 
-if (opt.nRuns>1) : 
+if (opt.nRuns>=1) : 
     for run in range(opt.nRuns):
         outDir='%s/run_%d'%(outDirSub,run)
         os.system('mkdir -p %s'%outDir)
@@ -153,7 +153,7 @@ scriptFile.write('eval `scramv1 runtime -sh`\n')
 scriptFile.write('cd $localdir\n')
 
 outTag='_%s'%(opt.PtEta)
-if (opt.nRuns>1) : 
+if (opt.nRuns>=1) : 
     outTag='%s_run${Step}'%(outTag)
     
 if not opt.skipStep1:
@@ -195,9 +195,13 @@ if len(opt.eosout)>0:
         scriptFile.write('for idx in 1 2 3; do\n') 
     elif not opt.skipStep2 and not opt.skipStep3:
         scriptFile.write('rm step1.root\n') 
+        scriptFile.write('rm step3_inDQM.root\n')
+        scriptFile.write('rm step3_inMINIAODSIM.root\n')
         scriptFile.write('for idx in 2 3; do\n') 
     elif not opt.skipStep3 :
         scriptFile.write('rm step2.root\n') 
+        scriptFile.write('rm step3_inDQM.root\n')
+        scriptFile.write('rm step3_inMINIAODSIM.root\n')
         scriptFile.write('for idx in 3; do\n') 
     else :
         scriptFile.write('rm step3.root\n') 
@@ -221,7 +225,8 @@ if len(opt.eosout)>0:
     scriptFile.write('fi\n')
     scriptFile.write('done\n')
     scriptFile.write('done\n')
-if (opt.nRuns>1) : 
+
+if (opt.nRuns>=1) : 
     scriptFile.write('cp * %s/run_${Step}/.\n'%(outDirSub))
 else:
     scriptFile.write('cp * %s/.\n'%(outDirSub))
@@ -246,7 +251,7 @@ else:
 condorFile.write('Executable = %s/runJob.sh\n'%outDirSub)
 if not opt.skipStep1 :
     condorFile.write('Arguments = --run $(Process) --seed $(SEED)\n')
-    if (opt.nRuns>1) : 
+    if (opt.nRuns>=1) : 
         condorFile.write('Output = %s/run_$(Process)/condor.out\n'%outDirSub)
         condorFile.write('Error = %s/run_$(Process)/condor.err\n'%outDirSub)
         condorFile.write('Log = %s/run_$(Process)/condor.log\n'%outDirSub)
@@ -254,7 +259,7 @@ if not opt.skipStep1 :
         condorFile.write('Output = %s/condor.out\n'%outDirSub)
         condorFile.write('Error = %s/condor.err\n'%outDirSub)
         condorFile.write('Log = %s/condor.log\n'%outDirSub)
-elif (opt.nRuns>1):
+elif (opt.nRuns>=1):
     condorFile.write('Arguments = --run $(Step)\n')
     condorFile.write('Output = %s/run_$(Step)/condor.out\n'%outDirSub)
     condorFile.write('Error = %s/run_$(Step)/condor.err\n'%outDirSub)
