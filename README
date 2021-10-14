@@ -1,0 +1,28 @@
+##Little package with configs for making single particle gun events 
+## And rerunning only TICL on top of step3 files, with possibility of modified configurations for the TICL iterations.
+
+##To produce events:
+##
+1- Make the configurations for step1, step2 and step3 using the wanted geometry etc... with runTheMatrix step
+Example: > runTheMatrix.py -w upgrade -l 23293.0 -j 0
+!!!! Edit step2 and step3 config to run all = "-1" events !!!!!!!
+
+
+2- For the step1, edit CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM_FineCalo.py
+ or CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM.py
+
+to check all parameters are appropriate. Some of them can be set in the submit step below.
+
+3- run the submitProdStep.py with desired options:
+
+python submitProdStep.py --help
+
+Exemple for initial 0PU prod:
+for eta in 21; do for pT in 50; do python submitProdStep.py -w 23293.0_CloseByParticleGun+2026D49+CloseByParticle_Photon_ERZRanges_GenSimHLBeamSpot+DigiTrigger+RecoGlobal+HARVESTGlobal --nRuns=10 -n 1000 --pT=${pT} --pdgid=211 --minz=0 --minEta=${eta}*0.0994 --maxEta=${eta}*0.1006 -d ChargedPionsFromVtx/FineCalo --config1=../CloseByParticle_Photon_ERZRanges_cfi_GEN_SIM_FineCalo.py -o ProdTiclHAD/ -e /eos/cms/store/user/amagnan/HGCAL/TiCL --PtEta=pt${pT}_eta${eta}; done; done
+
+Exemple to remake only step3:
+for eta in 21; do for pT in 50; do python submitProdStep.py --nRuns=10 -n 0 -d ChargedPionsFromVtx/FineCalo --skip-step1  --skip-step2  --skip-step3 --configTicl=step3ticl_noPU.py  -o ProdTiclBHfix/ -e /eos/cms/store/user/amagnan/HGCAL/TiCL/BHfix -E /eos/cms/store/user/amagnan/HGCAL/TiCL/ChargedPionsFromVtx/FineCalo --PtEta=pt${pT}_eta${eta} -G; done; done
+
+Exemple to make the PU version using same events:
+for eta in 21; do for pT in 50; do python submitProdStep.py -w 23493.0_CloseByParticleGun+2026D49PU+CloseByParticle_Photon_ERZRanges_GenSimHLBeamSpot+DigiTriggerPU+RecoGlobalPU+HARVESTGlobalPU/ --nRuns=10 -n 0 -d ChargedPionsFromVtxWithPU/FineCalo --skip-step1 --config2=step2_DIGI_L1TrackTrigger_L1_DIGI2RAW_HLT_PU.py --config3=step3_RAW2DIGI_L1Reco_RECO_RECOSIM_PAT_VALIDATION_DQM_PU.py -o ProdTiclHADPU/ -e /eos/cms/store/user/amagnan/HGCAL/TiCL -E /eos/cms/store/user/amagnan/HGCAL/TiCL/ChargedPionsFromVtx/FineCalo --PtEta=pt${pT}_eta${eta}; done; done
+
