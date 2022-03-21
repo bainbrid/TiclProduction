@@ -211,10 +211,10 @@ process.def_ticl = cms.Task(
 process.ticl_seq = cms.Sequence(
     process.sim_task,
     process.tile_task,
-    process.dummy_task,
+#    process.dummy_task,
     process.em_task,
-    process.had_task,
-    process.trk_task,
+#    process.had_task,
+#    process.trk_task,
     process.def_ticl,
 )
 
