@@ -165,6 +165,22 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase2_realistic_T15', '')
 
 #rerun default iterations
+from RecoHGCal.TICL.tracksterSelectionTf_cfi import *
+
+process.trackdnn_source = cms.ESSource(
+    "EmptyESSource",
+    firstValid = cms.vuint32(1),
+    iovIsRunNotTime = cms.bool(True),
+    recordName = cms.string('TfGraphRecord')
+)                                                                                                                                                     
+process.tracksterSelectionTf = cms.ESProducer(
+    "TfGraphDefProducer",
+    ComponentName = cms.string('tracksterSelectionTf'),
+    FileName = cms.FileInPath('RecoHGCal/TICL/data/tf_models/energy_id_v0.pb'),
+    appendToDataLabel = cms.string('')
+)
+
+
 from RecoHGCal.TICL.TrkEMStep_cff import *
 from RecoHGCal.TICL.EMStep_cff import *
 from RecoHGCal.TICL.TrkStep_cff import *
@@ -200,7 +216,7 @@ process.load('TiclProduction.Configuration.mySIMiterations_cff')
 
 #process.sim_path = cms.Sequence(process.sim_task)
 
-process.tile_task = cms.Task(process.ticlLayerTileProducer)
+process.tile_task = cms.Task(process.trackdnn_source,process.ticlLayerTileProducer)
 
 process.def_ticl = cms.Task(
     process.ticlTrkEMStepTask,process.ticlEMStepTask,
