@@ -111,8 +111,14 @@ ticlTrackstersEM3 = ticlTrackstersEM1.clone()
 ticlTrackstersEM3.filtered_mask = cms.InputTag("filteredLayerClustersEM3","EM3")
 ticlTrackstersEM3.itername = cms.string('EM3')
 
+ticlTrackstersCLUE3D3 = ticlTrackstersEM1.clone()
+ticlTrackstersCLUE3D3.filtered_mask = cms.InputTag("filteredLayerClustersEM3","EM3")
+ticlTrackstersCLUE3D3.itername = cms.string('CLUE3D3')
+ticlTrackstersCLUE3D3.patternRecognitionBy = cms.string('CLUE3D')
+
 em_task =  cms.Task(
     ticlSeedingGlobal,filteredLayerClustersEM1,ticlTrackstersEM1,
     ticlSeedingGlobal,filteredLayerClustersEM2,ticlTrackstersEM2,
-    ticlSeedingGlobal,filteredLayerClustersEM3,ticlTrackstersEM3
+    ticlSeedingGlobal,filteredLayerClustersEM3,ticlTrackstersEM3,
+    ticlTrackstersCLUE3D3
 )
