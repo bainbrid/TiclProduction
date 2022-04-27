@@ -2,75 +2,62 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: CloseByParticle_Photon_ERZRanges_cfi --conditions auto:phase2_realistic_T15 -n 10 --era Phase2C9 --eventcontent FEVTDEBUG --relval 9000,100 -s GEN,SIM --datatier GEN-SIM --beamspot HLLHC --geometry Extended2026D49 --no_exec --fileout file:step1.root
+# with command line options: CloseByParticle_Photon_ERZRanges_cfi -s GEN,SIM -n 10 --conditions auto:phase2_realistic_T15 --beamspot HGCALCloseBy --datatier GEN-SIM --eventcontent FEVTDEBUG --geometry Extended2026D49 --era Phase2C9 --relval 9000,100 --no_exec --fileout file:step1.root
 import FWCore.ParameterSet.Config as cms
-from FWCore.ParameterSet.VarParsing import VarParsing
 
+from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('analysis')
 options.register('generatorRandomSeed',
                  123456,
                  VarParsing.multiplicity.singleton,
                  VarParsing.varType.int,
                  "Random seed for generator process")
-
 options.register('pdgid',
                  22,
                  VarParsing.multiplicity.singleton,
                  VarParsing.varType.int,
                  "PDG ID for particle gun")
-
-options.register('E',
-                 0,
-                 VarParsing.multiplicity.singleton,
-                 VarParsing.varType.float,
-                 "Energy of CloseByPhotons")
-
-options.register('minpT',
-                 4.95,
+options.register('minE',
+                 199.999,
                  VarParsing.multiplicity.singleton,
                  VarParsing.varType.float,
                  "Minimum pT of CloseByPhotons")
-
-
-options.register('maxpT',
-                 5.05,
+options.register('maxE',
+                 200.001,
                  VarParsing.multiplicity.singleton,
                  VarParsing.varType.float,
                  "Maximum pT of CloseByPhotons")
-                                                                                                                                           
 options.register('minEta',
-                 1.69,
+                 2.0999,
                  VarParsing.multiplicity.singleton,
                  VarParsing.varType.float,
                  "Minimum eta of CloseByPhotons")
-
 options.register('maxEta',
-                 1.71,
+                 2.1001,
                  VarParsing.multiplicity.singleton,
                  VarParsing.varType.float,
                  "Maximum eta of CloseByPhotons")
-
 options.register('minPhi',
                  -3.14159265359,
                  VarParsing.multiplicity.singleton,
                  VarParsing.varType.float,
                  "Minimum phi of CloseByPhotons")
-
 options.register('maxPhi',
                  3.14159265359,
                  VarParsing.multiplicity.singleton,
                  VarParsing.varType.float,
                  "Maximum phi of CloseByPhotons")
-
-options.register('minz',
-                 320,
+options.register('maxZ',
+                 320.001,
+                 VarParsing.multiplicity.singleton,
+                 VarParsing.varType.float,
+                 "Maximum z of CloseByPhotons")
+options.register('minZ',
+                 320.,
                  VarParsing.multiplicity.singleton,
                  VarParsing.varType.float,
                  "Minimum z of CloseByPhotons")
-
-
-
-options.maxEvents=1
+options.maxEvents=1000
 options.parseArguments()
 
 from Configuration.Eras.Era_Phase2C9_cff import Phase2C9
@@ -87,15 +74,15 @@ process.load('Configuration.Geometry.GeometryExtended2026D49Reco_cff')
 process.load('Configuration.Geometry.GeometryExtended2026D49_cff')
 process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.Generator_cff')
-process.load('IOMC.EventVertexGenerators.VtxSmearedHLLHC_cfi')
+process.load('IOMC.EventVertexGenerators.VtxSmearedHGCALCloseBy_cfi')
 process.load('GeneratorInterface.Core.genFilterSummary_cff')
 process.load('Configuration.StandardSequences.SimIdeal_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-        input = cms.untracked.int32(options.maxEvents),
-        output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
+    input = cms.untracked.int32(options.maxEvents),
+    output = cms.optional.untracked.allowed(cms.int32,cms.PSet)
 )
 
 # Input source
@@ -106,19 +93,22 @@ process.options = cms.untracked.PSet(
     IgnoreCompletely = cms.untracked.vstring(),
     Rethrow = cms.untracked.vstring(),
     SkipEvent = cms.untracked.vstring(),
+    accelerators = cms.untracked.vstring('*'),
     allowUnscheduled = cms.obsolete.untracked.bool,
     canDeleteEarly = cms.untracked.vstring(),
+    deleteNonConsumedUnscheduledModules = cms.untracked.bool(True),
+    dumpOptions = cms.untracked.bool(False),
     emptyRunLumiMode = cms.obsolete.untracked.string,
     eventSetup = cms.untracked.PSet(
         forceNumberOfConcurrentIOVs = cms.untracked.PSet(
             allowAnyLabel_=cms.required.untracked.uint32
         ),
-        numberOfConcurrentIOVs = cms.untracked.uint32(1)
+        numberOfConcurrentIOVs = cms.untracked.uint32(0)
     ),
     fileMode = cms.untracked.string('FULLMERGE'),
     forceEventSetupCacheClearOnNewRun = cms.untracked.bool(False),
     makeTriggerResults = cms.obsolete.untracked.bool,
-    numberOfConcurrentLuminosityBlocks = cms.untracked.uint32(1),
+    numberOfConcurrentLuminosityBlocks = cms.untracked.uint32(0),
     numberOfConcurrentRuns = cms.untracked.uint32(1),
     numberOfStreams = cms.untracked.uint32(0),
     numberOfThreads = cms.untracked.uint32(1),
@@ -161,23 +151,24 @@ process.generator = cms.EDProducer(
         "CloseByParticleGunProducer",
         AddAntiParticle = cms.bool(False),
         PGunParameters = cms.PSet(
-                Delta = cms.double(20),
-                EnVal = cms.double(options.E),
-                PtMax = cms.double(options.maxpT),
-                PtMin = cms.double(options.minpT),
+                ControlledByEta = cms.bool(True),
+                Delta = cms.double(2.5),
+                EnMax = cms.double(options.maxE),
+                EnMin = cms.double(options.minE),
+                MaxEnSpread = cms.bool(False),
                 MaxEta = cms.double(options.maxEta),
                 MinEta = cms.double(options.minEta),
                 MaxPhi = cms.double(options.maxPhi),
                 MinPhi = cms.double(options.minPhi),
-                NParticles = cms.int32(1),
-                Overlapping = cms.bool(False),
+                NParticles = cms.int32(2),
+                Overlapping = cms.bool(True),
                 PartID = cms.vint32(options.pdgid),
                 Pointing = cms.bool(True),
-                #RMax = cms.double(120),
-                #RMin = cms.double(60),
+                RMax = cms.double(0),
+                RMin = cms.double(0),
                 RandomShoot = cms.bool(False),
-                ZMax = cms.double(options.minz+1),
-                ZMin = cms.double(options.minz)
+                ZMax = cms.double(options.maxZ),
+                ZMin = cms.double(options.minZ),
         ),
         Verbosity = cms.untracked.int32(0),
         firstRun = cms.untracked.uint32(1),
@@ -185,6 +176,7 @@ process.generator = cms.EDProducer(
 )
 
 process.RandomNumberGeneratorService.generator.initialSeed = options.generatorRandomSeed
+
 # Path and EndPath definitions
 process.generation_step = cms.Path(process.pgen)
 process.simulation_step = cms.Path(process.psim)
