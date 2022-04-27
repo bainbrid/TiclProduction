@@ -29,13 +29,10 @@ import argparse
 import commands
 import math
 import random
-import numpy as np
 
 def gen_uniform_int_random_seeds_(low, high, size):
-    np.random.seed()
-    r = np.random.uniform(low=low, high=high, size=size)
-    return [int(x) for x in r]
-
+    random.seed()
+    return [int(random.uniform(low,high)) for _ in xrange(size)]
 
 usage = 'usage: %prog [options]'
 parser = optparse.OptionParser(usage)
@@ -59,15 +56,16 @@ parser.add_option('-G', '--gridProxy',  action="store_true",  dest='gridProxy'  
 
 parser.add_option('--Eval'  ,    dest='Eval'         , help='Energy for generator process' , default=0,    type=float)
 parser.add_option('--pT'  ,    dest='pT'         , help='pT for generator process' , default=5,    type=float)
-parser.add_option('--minpT'  ,    dest='minpT'         , help='Minimum pT for generator process' , default=4.95,    type=float)
-parser.add_option('--maxpT'  ,    dest='maxpT'         , help='Maximum pT for generator process' , default=5.05,    type=float)
+parser.add_option('--minE'  ,    dest='minE'         , help='Minimum pT for generator process' , default=4.95,    type=float)
+parser.add_option('--maxE'  ,    dest='maxE'         , help='Maximum pT for generator process' , default=5.05,    type=float)
 parser.add_option('--Eta'  ,    dest='Eta'         , help='Eta*10 for generator process' , default=17,    type=float)
 parser.add_option('--Phi'  ,    dest='Phi'         , help='Phi in degrees for generator process' , default=0,    type=float)
 parser.add_option('--minEta'  ,    dest='minEta'         , help='Minimum Eta for generator process' , default=1.69,    type=float)
 parser.add_option('--maxEta'  ,    dest='maxEta'         , help='Maximum Eta for generator process' , default=1.71,    type=float)
 parser.add_option('--minPhi'  ,    dest='minPhi'         , help='Minimum Phi for generator process' , default=-3.14159265359,    type=float)
 parser.add_option('--maxPhi'  ,    dest='maxPhi'         , help='Maximum Phi for generator process' , default=3.14159265359,    type=float)
-parser.add_option('--minz'  ,    dest='minz'         , help='Minimum z for generator process' , default=320,    type=float)
+parser.add_option('--minZ'  ,    dest='minZ'         , help='Minimum z for generator process' , default=320,    type=float)
+parser.add_option('--maxZ'  ,    dest='maxZ'         , help='Maximum z for generator process' , default=320.001,    type=float)
 parser.add_option('--pdgid'  ,    dest='pdgid'         , help='PDG ID generator process' , default=22,    type=int)
 parser.add_option('--PtEta'         ,    dest='PtEta'                , help='Pt-eta string path to save root file to EOS',         default='pt5_eta17')
 
@@ -90,6 +88,9 @@ if '/eos/user' in opt.eosout:
     eosls='ls'
     eosmk='mkdir'
 
+#@@ dirty hack as eta is passed as an integer (e.g. 21 --> 2.1) ...
+opt.minEta = opt.minEta*0.1
+opt.maxEta = opt.maxEta*0.1
 
 gen_kwargs = dict(low=0, high=100000, size=opt.nRuns)
 seeds = gen_uniform_int_random_seeds_(**gen_kwargs)
@@ -165,8 +166,8 @@ if not opt.skipStep1:
         scriptFile.write('echo "cmsRun %s/%s/%s maxEvents=%d generatorRandomSeed=${SEED} E=%3.3f minEta=%3.3f maxEta=%3.3f minPhi=%3.3f maxPhi=%3.3f minz=%3.3f pdgid=%d" >> runJob.log\n'%(os.getcwd(),opt.workflow,opt.config1,opt.nevts,opt.Eval,opt.minEta,opt.maxEta,opt.minPhi,opt.maxPhi,opt.minz,opt.pdgid))
         scriptFile.write('cmsRun %s/%s/%s maxEvents=%d generatorRandomSeed=${SEED} E=%3.3f minEta=%3.3f maxEta=%3.3f minPhi=%3.3f maxPhi=%3.3f minz=%3.3f pdgid=%d\n'%(os.getcwd(),opt.workflow,opt.config1,opt.nevts,opt.Eval,opt.minEta,opt.maxEta,opt.minPhi,opt.maxPhi,opt.minz,opt.pdgid))
     else: 
-        scriptFile.write('echo "cmsRun %s/%s/%s maxEvents=%d generatorRandomSeed=${SEED} minpT=%3.3f maxpT=%3.3f minEta=%3.3f maxEta=%3.3f minPhi=%3.3f maxPhi=%3.3f minz=%3.3f pdgid=%d" >> runJob.log\n'%(os.getcwd(),opt.workflow,opt.config1,opt.nevts,opt.pT*0.99,opt.pT*1.01,opt.minEta,opt.maxEta,opt.minPhi,opt.maxPhi,opt.minz,opt.pdgid))
-        scriptFile.write('cmsRun %s/%s/%s maxEvents=%d generatorRandomSeed=${SEED} minpT=%3.3f maxpT=%3.3f minEta=%3.3f maxEta=%3.3f minPhi=%3.3f maxPhi=%3.3f minz=%3.3f pdgid=%d\n'%(os.getcwd(),opt.workflow,opt.config1,opt.nevts,opt.pT*0.99,opt.pT*1.01,opt.minEta,opt.maxEta,opt.minPhi,opt.maxPhi,opt.minz,opt.pdgid))
+        scriptFile.write('echo "cmsRun %s/%s/%s maxEvents=%d generatorRandomSeed=${SEED} minE=%3.3f maxE=%3.3f minEta=%3.3f maxEta=%3.3f minPhi=%3.3f maxPhi=%3.3f minZ=%3.3f maxZ=%3.3f pdgid=%d" >> runJob.log\n'%(os.getcwd(),opt.workflow,opt.config1,opt.nevts,opt.pT-0.001,opt.pT+0.001,opt.minEta-0.001,opt.maxEta+0.001,opt.minPhi,opt.maxPhi,opt.minZ,opt.maxZ,opt.pdgid))
+        scriptFile.write('cmsRun %s/%s/%s maxEvents=%d generatorRandomSeed=${SEED} minE=%3.3f maxE=%3.3f minEta=%3.3f maxEta=%3.3f minPhi=%3.3f maxPhi=%3.3f minZ=%3.3f maxZ=%3.3f pdgid=%d\n'%(os.getcwd(),opt.workflow,opt.config1,opt.nevts,opt.pT-0.001,opt.pT+0.001,opt.minEta-0.001,opt.maxEta+0.001,opt.minPhi,opt.maxPhi,opt.minZ,opt.maxZ,opt.pdgid))
 
 elif not opt.skipStep2:
     scriptFile.write('%s %s/step1%s.root step1.root\n'%(eoscp,eosDirIn,outTag))
